@@ -6,5 +6,5 @@ class ReportCardModel {
   final List<StudentModel> students;
   int moyenne;
 
-  ReportCardModel({required this.lessons, required this.students, this.moyenne = 00});
+  ReportCardModel({required this.lessons, required this.students, int? moyenne}): moyenne = moyenne ?? 00;
 }

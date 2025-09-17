@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "939849111238",
+    "project_id": "notix-2a315",
+    "storage_bucket": "notix-2a315.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:939849111238:android:5cb0e506815ad70674a9c7",
+        "android_client_info": {
+          "package_name": "com.example.student_notes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqRPdrSIPAfIumyWfgNHp-Pg6HAOSlY2s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
