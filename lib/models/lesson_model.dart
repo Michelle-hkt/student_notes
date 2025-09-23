@@ -1,8 +1,8 @@
+
 class LessonModel {
   final String lessonname;
-  List<int> notes ;
 
-  LessonModel({required this.lessonname, List<int>? notes,}): notes = notes ?? [];
+  LessonModel({required this.lessonname});
 }
 
 List<LessonModel> lessons = [
