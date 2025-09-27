@@ -4,16 +4,6 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-/// Default [FirebaseOptions] for use with your Firebase apps.
-///
-/// Example:
-/// ```dart
-/// import 'firebase_options.dart';
-/// // ...
-/// await Firebase.initializeApp(
-///   options: DefaultFirebaseOptions.currentPlatform,
-/// );
-/// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -46,7 +36,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '939849111238',
     projectId: 'notix-2a315',
     authDomain: 'notix-2a315.firebaseapp.com',
-    storageBucket: 'notix-2a315.firebasestorage.app',
+    storageBucket: 'notix-2a315.appspot.com',
     measurementId: 'G-T6FJ466M6Z',
   );
 
@@ -55,7 +45,7 @@ class DefaultFirebaseOptions {
     appId: '1:939849111238:android:5cb0e506815ad70674a9c7',
     messagingSenderId: '939849111238',
     projectId: 'notix-2a315',
-    storageBucket: 'notix-2a315.firebasestorage.app',
+    storageBucket: 'notix-2a315.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -63,7 +53,7 @@ class DefaultFirebaseOptions {
     appId: '1:939849111238:ios:10d24aa2198bd14874a9c7',
     messagingSenderId: '939849111238',
     projectId: 'notix-2a315',
-    storageBucket: 'notix-2a315.firebasestorage.app',
+    storageBucket: 'notix-2a315.appspot.com',
     iosBundleId: 'com.example.studentNotes',
   );
 
@@ -72,7 +62,7 @@ class DefaultFirebaseOptions {
     appId: '1:939849111238:ios:10d24aa2198bd14874a9c7',
     messagingSenderId: '939849111238',
     projectId: 'notix-2a315',
-    storageBucket: 'notix-2a315.firebasestorage.app',
+    storageBucket: 'notix-2a315.appspot.com',
     iosBundleId: 'com.example.studentNotes',
   );
 
@@ -82,7 +72,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '939849111238',
     projectId: 'notix-2a315',
     authDomain: 'notix-2a315.firebaseapp.com',
-    storageBucket: 'notix-2a315.firebasestorage.app',
+    storageBucket: 'notix-2a315.appspot.com',
     measurementId: 'G-1S6JX9MY6J',
   );
 }
