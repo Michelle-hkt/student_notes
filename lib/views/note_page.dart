@@ -1,7 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:student_notes/models/lesson_model.dart';
 import 'package:student_notes/models/student_model.dart';
 import 'package:student_notes/models/student_note.dart';
+import 'package:student_notes/views/report_card.dart';
 
 class NotePage extends StatefulWidget {
   final StudentModel student;
@@ -23,11 +27,11 @@ class _NotePageState extends State<NotePage> {
     );
   }
 
-  int interro1 = 00;
-  int interro2 = 00;
-  int interro3 = 00;
-  int dev1 = 00;
-  int dev2 = 00;
+  double interro1 = 0;
+  double interro2 = 0;
+  double interro3 = 0;
+  double dev1 = 0;
+  double dev2 = 0;
 
   final _interro1Controller = TextEditingController();
   final _interro2Controller = TextEditingController();
@@ -39,6 +43,7 @@ class _NotePageState extends State<NotePage> {
 
   final _keyForm = GlobalKey<FormState>();
 
+  // ajout de note
   void addNote(BuildContext context) {
     showDialog(
       context: context,
@@ -63,7 +68,7 @@ class _NotePageState extends State<NotePage> {
                     ),
                     SizedBox(height: 20),
 
-                    // Champ pour le nom
+                    // Champ type select pour le nom de la matière
                     DropdownButtonFormField<LessonModel>(
                       value: selectedLesson,
                       decoration: InputDecoration(
@@ -114,7 +119,8 @@ class _NotePageState extends State<NotePage> {
                               TextFormField(
                                 controller: _interro1Controller,
                                 keyboardType: TextInputType
-                                    .number, // affiche le clavier numérique
+                                    .numberWithOptions(decimal: true), // affiche le clavier numérique
+                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
                                 decoration: InputDecoration(
                                   hintText: "note 1",
                                   border: OutlineInputBorder(
@@ -129,13 +135,17 @@ class _NotePageState extends State<NotePage> {
                                   if (value == null || value.isEmpty) {
                                     return "Ce champ est obligatoire";
                                   }
-                                  if (int.tryParse(value) == null) {
+                                  final number = double.tryParse(value);
+                                  if (number == null) {
                                     return "Veuillez entrer un nombre valide";
+                                  }
+                                  if(number < 0 || number > 20) {
+                                    return "Entre 0 et 20";
                                   }
                                   return null;
                                 },
                                 onChanged: (value) =>
-                                    interro1 = int.tryParse(value) ?? 00,
+                                    interro1 = double.tryParse(value) ?? 0,
                               ),
 
                               SizedBox(height: 10),
@@ -143,7 +153,8 @@ class _NotePageState extends State<NotePage> {
                               TextFormField(
                                 controller: _interro2Controller,
                                 keyboardType: TextInputType
-                                    .number, // affiche le clavier numérique
+                                    .numberWithOptions(decimal: true), // affiche le clavier numérique
+                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
                                 decoration: InputDecoration(
                                   hintText: "note 2",
                                   border: OutlineInputBorder(
@@ -158,13 +169,17 @@ class _NotePageState extends State<NotePage> {
                                   if (value == null || value.isEmpty) {
                                     return "Ce champ est obligatoire";
                                   }
-                                  if (int.tryParse(value) == null) {
+                                  final number = double.tryParse(value);
+                                  if (number == null) {
                                     return "Veuillez entrer un nombre valide";
+                                  }
+                                  if(number < 0 || number > 20) {
+                                    return "Entre 0 et 20";
                                   }
                                   return null;
                                 },
                                 onChanged: (value) =>
-                                    interro2 = int.tryParse(value) ?? 00,
+                                    interro2 = double.tryParse(value) ?? 00,
                               ),
 
                               SizedBox(height: 10),
@@ -172,7 +187,8 @@ class _NotePageState extends State<NotePage> {
                               TextFormField(
                                 controller: _interro3Controller,
                                 keyboardType: TextInputType
-                                    .number, // affiche le clavier numérique
+                                    .numberWithOptions(decimal: true), // affiche le clavier numérique
+                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
                                 decoration: InputDecoration(
                                   hintText: "note 3",
                                   border: OutlineInputBorder(
@@ -187,13 +203,17 @@ class _NotePageState extends State<NotePage> {
                                   if (value == null || value.isEmpty) {
                                     return "Ce champ est obligatoire";
                                   }
-                                  if (int.tryParse(value) == null) {
+                                  final number = double.tryParse(value);
+                                  if (number == null) {
                                     return "Veuillez entrer un nombre valide";
+                                  }
+                                  if(number < 0 || number > 20) {
+                                    return "Entre 0 et 20";
                                   }
                                   return null;
                                 },
                                 onChanged: (value) =>
-                                    interro3 = int.tryParse(value) ?? 0,
+                                    interro3 =double.tryParse(value) ?? 0,
                               ),
                             ],
                           ),
@@ -206,7 +226,6 @@ class _NotePageState extends State<NotePage> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-
                                 "Devoirs",
                                 style: TextStyle(
                                   fontSize: 16,
@@ -217,7 +236,8 @@ class _NotePageState extends State<NotePage> {
                               TextFormField(
                                 controller: _dev1Controller,
                                 keyboardType: TextInputType
-                                    .number, // affiche le clavier numérique
+                                    .numberWithOptions(decimal: true), // affiche le clavier numérique
+                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
                                 decoration: InputDecoration(
                                   hintText: "note 1",
                                   border: OutlineInputBorder(
@@ -232,21 +252,26 @@ class _NotePageState extends State<NotePage> {
                                   if (value == null || value.isEmpty) {
                                     return "Ce champ est obligatoire";
                                   }
-                                  if (int.tryParse(value) == null) {
+                                  final number = double.tryParse(value);
+                                  if (number == null) {
                                     return "Veuillez entrer un nombre valide";
+                                  }
+                                  if(number < 0 || number > 20) {
+                                    return "Entre 0 et 20";
                                   }
                                   return null;
                                 },
                                 onChanged: (value) =>
-                                    dev1 = int.tryParse(value) ?? 0,
+                                    dev1 = double.tryParse(value) ?? 0,
                               ),
 
                               SizedBox(height: 10),
-                              
+
                               TextFormField(
                                 controller: _dev2Controller,
                                 keyboardType: TextInputType
-                                    .number, // affiche le clavier numérique
+                                    .numberWithOptions(decimal: true), // affiche le clavier numérique
+                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
                                 decoration: InputDecoration(
                                   hintText: "note 2",
                                   border: OutlineInputBorder(
@@ -261,13 +286,17 @@ class _NotePageState extends State<NotePage> {
                                   if (value == null || value.isEmpty) {
                                     return "Ce champ est obligatoire";
                                   }
-                                  if (int.tryParse(value) == null) {
+                                  final number = double.tryParse(value);
+                                  if (number == null) {
                                     return "Veuillez entrer un nombre valide";
+                                  }
+                                  if(number < 0 || number > 20) {
+                                    return "Entre 0 et 20";
                                   }
                                   return null;
                                 },
                                 onChanged: (value) =>
-                                    dev2 = int.tryParse(value) ?? 0,
+                                    dev2 = double.tryParse(value) ?? 0,
                               ),
                             ],
                           ),
@@ -281,7 +310,7 @@ class _NotePageState extends State<NotePage> {
                     OutlinedButton(
                       onPressed: () {
                         if (_keyForm.currentState!.validate()) {
-                          print(
+                          log(
                             "Notes ajouter pour ${selectedLesson?.lessonname}: $interro1 $interro2, $interro3, $dev1, $dev2",
                           );
                           // Vider les champs après l'ajout
@@ -292,11 +321,11 @@ class _NotePageState extends State<NotePage> {
                           _dev2Controller.clear();
 
                           //réinitialiser les variables
-                          interro1 = 00;
-                          interro2 = 00;
-                          interro3 = 00;
-                          dev1 = 00;
-                          dev2 = 00;
+                          interro1 = 0;
+                          interro2 = 0;
+                          interro3 = 0;
+                          dev1 = 0;
+                          dev2 = 0;
                           selectedLesson = null;
 
                           Navigator.pop(context);
@@ -331,19 +360,31 @@ class _NotePageState extends State<NotePage> {
     );
   }
 
-  /* Widget? noteContainer(){
+  // le container de chaque note
+  Widget noteContainer(String note) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.3,
-      width: MediaQuery.of(context).size.width * 0.3,
-
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(color: Colors.transparent),
+      child: Text(note),
     );
+  }
 
-  } */
+// fonction pour convertir les double auyant un .0 en entier
+String convertInInt(num note) {
+  if(note % 1 == 0){
+    return note.toInt().toString(); // retirer le .0 si c'est un entier
+  }else{
+    return note.toString();
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFDBEEFF),
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         centerTitle: true,
         title: Text(
           'Notes ',
@@ -414,7 +455,7 @@ class _NotePageState extends State<NotePage> {
                       ),
                       DataColumn(
                         label: Text(
-                          "Interro",
+                          "Interrogations",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -430,23 +471,28 @@ class _NotePageState extends State<NotePage> {
                         cells: [
                           DataCell(Text(ln.lessons.lessonname)),
                           DataCell(
-                            Text(
-                              ln.notes.isNotEmpty
-                                  ? ln.notes
-                                        .take(3)
-                                        .map((note) => note.toString())
-                                        .join(" , ")
-                                  : "N/A",
+                            Row(
+                              children: ln.interrogation.isNotEmpty?
+                              ln.interrogation.map((note) {
+                                return Padding(
+                                  padding: EdgeInsetsGeometry.only(right: 5),
+                                  child: noteContainer(convertInInt(note)),
+                                );
+                              }).toList() :[Text("N/A")],
                             ),
                           ),
                           DataCell(
-                            Text(
-                              ln.notes.length > 2
-                                  ? ln.notes
-                                        .skip(3)
-                                        .map((note) => note.toString())
-                                        .join(" , ")
-                                  : "N/A",
+                            Row(
+                              children: ln.devoir.isNotEmpty
+                                  ? ln.devoir.map((note) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 5,
+                                        ),
+                                        child: noteContainer(convertInInt(note)),
+                                      );
+                                    }).toList()
+                                  : [Text("N/A")],
                             ),
                           ),
                         ],
@@ -454,6 +500,31 @@ class _NotePageState extends State<NotePage> {
                     }).toList(),
                   ),
                 ),
+               
+                SizedBox(height: 70),
+          
+                Center(
+                  child: InkWell
+                  (
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.5,
+                      padding: EdgeInsets.symmetric(vertical:10, horizontal: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text("Générer un bulletin", textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (context) => ReportCard(student: widget.student))
+                      );
+                    },
+                  ),
+  
+                )
+              
               ],
             ),
           ),

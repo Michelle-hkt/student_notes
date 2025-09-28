@@ -21,7 +21,6 @@ class _PagesContainerState extends State<PagesContainer> {
       Home(),
       Student(),
       Lesson(),
-      ReportCard()
     ];
     return Scaffold(
       body: pages[currentIndex],
@@ -49,10 +48,6 @@ class _PagesContainerState extends State<PagesContainer> {
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_book),
             label: 'Matières',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.workspace_premium),
-            label: 'Bulletin',
           ),
         ],
       ),
