@@ -2,6 +2,9 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:student_notes/controllers/student_note_controller.dart';
+import 'package:student_notes/models/lesson_and_note.dart';
 import 'package:student_notes/models/lesson_model.dart';
 import 'package:student_notes/models/student_model.dart';
 import 'package:student_notes/models/student_note.dart';
@@ -16,16 +19,15 @@ class NotePage extends StatefulWidget {
 }
 
 class _NotePageState extends State<NotePage> {
-  late StudentNote studentNote;
 
-  // trouve dans studentNote l'item qui corespond a l'étudiant courant
+
   @override
   void initState() {
     super.initState();
-    studentNote = studentNotes.firstWhere(
-      (item) => item.students == widget.student,
-    );
+    
   }
+   
+
 
   double interro1 = 0;
   double interro2 = 0;
@@ -42,6 +44,45 @@ class _NotePageState extends State<NotePage> {
   LessonModel? selectedLesson;
 
   final _keyForm = GlobalKey<FormState>();
+
+  StudentNoteController studentNoteController = StudentNoteController();
+
+  void saveStudentNotesToFirebase() async {
+  // 1. Construire un nouvel objet LessonAndNotes
+  LessonAndNotes lessonAndNotes = LessonAndNotes(
+    lessons: selectedLesson!, // choisi dans le Dropdown
+    interrogation: [interro1, interro2, interro3]
+        .where((note) => note > 0)
+        .toList(), // on garde que les notes saisies
+    devoir: [dev1, dev2].where((note) => note > 0).toList(),
+  );
+
+  // 2. Construire un StudentNote (lié à l’étudiant courant)
+  StudentNote studentNoteToSave = StudentNote(
+    students: widget.student,
+    lessonsAndNotes: [lessonAndNotes], // ici on sauvegarde la matière choisie + les notes
+  );
+
+  // 3. Appeler ton controller pour envoyer dans Firestore
+  await studentNoteController.createStudentNote(studentNoteToSave);
+
+  // 4. Nettoyer les champs
+  _interro1Controller.clear();
+  _interro2Controller.clear();
+  _interro3Controller.clear();
+  _dev1Controller.clear();
+  _dev2Controller.clear();
+  selectedLesson = null;
+
+  // 5. Fermer la pop-up et notifier
+  Get.back();
+  Get.snackbar(
+    'Information',
+    "Les notes ont bien été enregistrées",
+    snackPosition: SnackPosition.BOTTOM,
+  );
+}
+
 
   // ajout de note
   void addNote(BuildContext context) {
@@ -86,7 +127,7 @@ class _NotePageState extends State<NotePage> {
                           value: lesson,
                           child: Text(
                             lesson.lessonname,
-                          ), // utilise ton nom de matière
+                          ), 
                         );
                       }).toList(),
                       onChanged: (value) {
@@ -116,6 +157,8 @@ class _NotePageState extends State<NotePage> {
                                 ),
                               ),
                               SizedBox(height: 10),
+
+                              //Interrogation note1
                               TextFormField(
                                 controller: _interro1Controller,
                                 keyboardType: TextInputType
@@ -150,6 +193,7 @@ class _NotePageState extends State<NotePage> {
 
                               SizedBox(height: 10),
 
+                              // Interrogation note2
                               TextFormField(
                                 controller: _interro2Controller,
                                 keyboardType: TextInputType
@@ -183,7 +227,8 @@ class _NotePageState extends State<NotePage> {
                               ),
 
                               SizedBox(height: 10),
-
+                              
+                              //Interrogation note3
                               TextFormField(
                                 controller: _interro3Controller,
                                 keyboardType: TextInputType
@@ -220,6 +265,7 @@ class _NotePageState extends State<NotePage> {
                         ),
                         SizedBox(width: 15),
 
+                        // DEVOIR
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -233,6 +279,8 @@ class _NotePageState extends State<NotePage> {
                                 ),
                               ),
                               SizedBox(height: 10),
+
+                              //Devoir1
                               TextFormField(
                                 controller: _dev1Controller,
                                 keyboardType: TextInputType
@@ -267,6 +315,7 @@ class _NotePageState extends State<NotePage> {
 
                               SizedBox(height: 10),
 
+                              // Devoir note2
                               TextFormField(
                                 controller: _dev2Controller,
                                 keyboardType: TextInputType
@@ -310,25 +359,13 @@ class _NotePageState extends State<NotePage> {
                     OutlinedButton(
                       onPressed: () {
                         if (_keyForm.currentState!.validate()) {
-                          log(
-                            "Notes ajouter pour ${selectedLesson?.lessonname}: $interro1 $interro2, $interro3, $dev1, $dev2",
+                          saveStudentNotesToFirebase();
+                        } else {
+                          Get.snackbar(
+                            'Information',
+                            "Formulaire invalide",
+                            snackPosition: SnackPosition.BOTTOM,
                           );
-                          // Vider les champs après l'ajout
-                          _interro1Controller.clear();
-                          _interro2Controller.clear();
-                          _interro3Controller.clear();
-                          _dev1Controller.clear();
-                          _dev2Controller.clear();
-
-                          //réinitialiser les variables
-                          interro1 = 0;
-                          interro2 = 0;
-                          interro3 = 0;
-                          dev1 = 0;
-                          dev2 = 0;
-                          selectedLesson = null;
-
-                          Navigator.pop(context);
                         }
                       },
                       style: ButtonStyle(
@@ -380,156 +417,154 @@ String convertInInt(num note) {
 
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFDBEEFF),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        centerTitle: true,
-        title: Text(
-          'Notes ',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 23),
-        ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Color(0xFFDBEEFF),
+    appBar: AppBar(
+      backgroundColor: Colors.transparent,
+      centerTitle: true,
+      title: Text(
+        'Notes',
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 23),
       ),
-      body: ListView(
-        physics: NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "NOM: ${widget.student.lastname}",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-              Text(
-                "PRENOM: ${widget.student.firstname}",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
+    ),
+    body: FutureBuilder<List<StudentNote>>(
+      future: studentNoteController.getAllStudentNotes(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Erreur lors de la récupération des notes"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("Aucune note disponible"));
+        } else {
+          // On récupère toutes les notes
+          final allstudentNote = snapshot.data!;
+          // On filtre pour garder uniquement celles de l’étudiant courant
+          final studentNote = allstudentNote.firstWhere(
+            (item) => item.students.lastname == widget.student.lastname,
+            orElse: () => StudentNote(students: widget.student, lessonsAndNotes: []),
+          );
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          return ListView(
+            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
             children: [
-              Container(
-                width: 29,
-                height: 29,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Color(0xFFFFFFFF),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: Offset(0, 3), // changes position of shadow
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "NOM: ${widget.student.lastname}",
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    "PRENOM: ${widget.student.firstname}",
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    width: 29,
+                    height: 29,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
                     ),
+                    child: IconButton(
+                      onPressed: () => addNote(context),
+                      padding: EdgeInsets.zero,
+                      icon: Icon(Icons.add, size: 20),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 15),
+
+              // Tableau des notes
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text("Matières", style: TextStyle(fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text("Interrogations", style: TextStyle(fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text("Devoirs", style: TextStyle(fontWeight: FontWeight.bold))),
                   ],
-                ),
-                child: IconButton(
-                  onPressed: () => addNote(context),
-                  padding: EdgeInsets.zero,
-                  icon: Icon(Icons.add, size: 20),
+                  rows: studentNote.lessonsAndNotes.map((ln) {
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(ln.lessons.lessonname)),
+                        DataCell(
+                          Row(
+                            children: ln.interrogation.isNotEmpty
+                                ? ln.interrogation.map((note) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 5),
+                                      child: noteContainer(convertInInt(note)),
+                                    );
+                                  }).toList()
+                                : [Text("N/A")],
+                          ),
+                        ),
+                        DataCell(
+                          Row(
+                            children: ln.devoir.isNotEmpty
+                                ? ln.devoir.map((note) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 5),
+                                      child: noteContainer(convertInInt(note)),
+                                    );
+                                  }).toList()
+                                : [Text("N/A")],
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
                 ),
               ),
-            ],
-          ),
 
-          SizedBox(height: 15),
+              SizedBox(height: 30),
 
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: ListView(
-              children: [
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(
-                        label: Text(
-                          "Matières",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          "Interrogations",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          "Devoirs",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                    rows: studentNote.lessonsAndNotes.map((ln) {
-                      return DataRow(
-                        cells: [
-                          DataCell(Text(ln.lessons.lessonname)),
-                          DataCell(
-                            Row(
-                              children: ln.interrogation.isNotEmpty?
-                              ln.interrogation.map((note) {
-                                return Padding(
-                                  padding: EdgeInsetsGeometry.only(right: 5),
-                                  child: noteContainer(convertInInt(note)),
-                                );
-                              }).toList() :[Text("N/A")],
-                            ),
-                          ),
-                          DataCell(
-                            Row(
-                              children: ln.devoir.isNotEmpty
-                                  ? ln.devoir.map((note) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 5,
-                                        ),
-                                        child: noteContainer(convertInInt(note)),
-                                      );
-                                    }).toList()
-                                  : [Text("N/A")],
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
+              Center(
+                child: InkWell(
+                  onTap: () {
+                    Get.to(() => ReportCard(student: widget.student));
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 7),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Générer un bulletin",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ),
-               
-                SizedBox(height: 70),
-          
-                Center(
-                  child: InkWell
-                  (
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.5,
-                      padding: EdgeInsets.symmetric(vertical:10, horizontal: 7),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text("Générer un bulletin", textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),),
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context, 
-                        MaterialPageRoute(builder: (context) => ReportCard(student: widget.student))
-                      );
-                    },
-                  ),
-  
-                )
-              
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+              )
+            ],
+          );
+        }
+      },
+    ),
+  );
 }
+
+  }
+

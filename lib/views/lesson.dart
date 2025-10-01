@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:student_notes/controllers/lesson_controller.dart';
 import 'package:student_notes/models/lesson_model.dart';
 
 class Lesson extends StatefulWidget {
@@ -12,10 +14,34 @@ class Lesson extends StatefulWidget {
 
 class _LessonState extends State<Lesson> {
   String lessonname = "";
+  String imageUrl = "";
 
   final _lessonController = TextEditingController();
+  final _imageController = TextEditingController();
 
   final _keyForm = GlobalKey<FormState>();
+
+  LessonController lessonController = LessonController();
+
+  void saveLessonToFirebase() async {
+    LessonModel lessonToSave = LessonModel(
+      lessonname: _lessonController.text,
+      imageUrl: _imageController.text,
+    );
+
+    await lessonController.createLesson(lessonToSave);
+
+    _lessonController.clear();
+    _imageController.clear();
+
+    Get.back();
+
+    Get.snackbar(
+      'Information',
+      "La matière a bien été ajouter",
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
 
   void addLesson(BuildContext context) {
     showDialog(
@@ -61,18 +87,38 @@ class _LessonState extends State<Lesson> {
                     ),
                     SizedBox(height: 18),
 
+                    //Champ pour l'image
+                    TextFormField(
+                      controller: _imageController,
+                      decoration: InputDecoration(
+                        hintText: "Url de l'image",
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: const Color(0xFF828282),
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? "Ce champ est obligatoire"
+                          : null,
+                      onChanged: (value) => imageUrl = value,
+                    ),
+                    SizedBox(height: 18),
+
                     // Bouton pour ajouter l'étudiant
                     OutlinedButton(
                       onPressed: () {
                         if (_keyForm.currentState!.validate()) {
-                          log("Ajouter la Matière: $lessonname");
-                          // Vider le champs après l'ajout
-                          _lessonController.clear();
-
-                          //réinitialiser la variable
-                          lessonname = "";
-
+                          saveLessonToFirebase();
                           Navigator.pop(context);
+                        } else {
+                          Get.snackbar(
+                            'Information',
+                            "Formulaire invalide",
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
                         }
                       },
                       style: ButtonStyle(
@@ -140,6 +186,19 @@ class _LessonState extends State<Lesson> {
     );
   }
 
+  /* Future<void> loadRecipesFromFirebase() async {
+    try {
+      log("Récupération des recettes depuis Firebase...");
+      List<Recipe> recipes = await recipeController.getAllRecipes();
+      setState(() {
+        firebaseRecipes = recipes;
+      });
+      log("${recipes.length} recettes récupérées avec succès");
+    } catch (e) {
+      log("Erreur lors de la récupération des recettes: $e");
+    }
+  } */
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,12 +236,41 @@ class _LessonState extends State<Lesson> {
         ],
       ),
 
-      body: ListView(
+      body: Container(
+        padding: EdgeInsets.symmetric(horizontal:8, vertical: 20),
+        child: FutureBuilder<List<LessonModel>>(
+          
+          future: lessonController
+              .getAllLessons(), // récupère les matières depuis Firestore
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text("Erreur lors de la récupération des matières"),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(child: Text("Aucune matière disponible"));
+            } else {
+              final lessonsFromFirebase = snapshot.data!;
+              return ListView.builder(
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+                itemCount: lessonsFromFirebase.length,
+                itemBuilder: (context, index) {
+                  return lessonContainer(lessonsFromFirebase[index]);
+                },
+              );
+            }
+          },
+        ),
+      ),
+    );
+    /* ListView(
         padding: EdgeInsets.symmetric(horizontal:15, vertical: 20),
         children: lessons.map((lesson) {
           return lessonContainer(lesson);
         }).toList(),
       ),
-    );
+    ); */
   }
 }

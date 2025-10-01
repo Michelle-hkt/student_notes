@@ -1,12 +1,37 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:student_notes/models/lesson_and_note.dart';
 import 'package:student_notes/models/student_model.dart';
 import 'package:student_notes/models/lesson_model.dart';
 
 class StudentNote {
+  final String? id;
   final StudentModel students;
   final List<LessonAndNotes> lessonsAndNotes;
 
-  StudentNote({required this.students, required this.lessonsAndNotes});
+  StudentNote({this.id, required this.students, required this.lessonsAndNotes});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'students': students.toJson(),
+      'lessonsAndNotes': lessonsAndNotes.map((ln) => ln.toJson()).toList(),
+    };
+  }
+
+   static StudentNote fromSnapshot(DocumentSnapshot snapshot) {
+    var data = snapshot.data() as Map<String, dynamic>;
+
+    return StudentNote(
+      id: snapshot.id,
+      students: StudentModel.fromJson(data['students'] as Map<String, dynamic>),
+      lessonsAndNotes: (data['lessonsAndNotes'] as List)
+          .map((item) => LessonAndNotes.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  
+
+
 }
 
 List<StudentNote> studentNotes = [

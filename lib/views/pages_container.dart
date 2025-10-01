@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:student_notes/views/home.dart';
 import 'package:student_notes/views/lesson.dart';
 import 'package:student_notes/views/report_card.dart';
+import 'package:student_notes/views/search.dart';
 import 'package:student_notes/views/student.dart';
 
 class PagesContainer extends StatefulWidget {

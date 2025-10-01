@@ -1,4 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:student_notes/controllers/student_controller.dart';
 import 'package:student_notes/models/student_model.dart';
 import 'package:student_notes/views/note_page.dart';
 
@@ -10,6 +14,18 @@ class Student extends StatefulWidget {
 }
 
 class _StudentState extends State<Student> {
+  /* @override
+  void initState() {
+    super.initState();
+    _addStudentsOnStart();
+  }
+
+  // Fonction pour exécuter l'ajout au démarrage
+  void _addStudentsOnStart() async {
+    await addAllStudents();
+    log("Tous les étudiants ont été ajoutés !");
+  } */
+
   String firstname = "";
   String lastname = "";
   int age = 0;
@@ -21,6 +37,35 @@ class _StudentState extends State<Student> {
   final _classController = TextEditingController();
 
   final _keyForm = GlobalKey<FormState>();
+
+  String writtenText = "";
+
+  StudentController studentController = StudentController();
+
+  void saveStudentToFirebase() async {
+    StudentModel userToSave = StudentModel(
+      firstname: _firstnameController.text,
+      lastname: _lastnameController.text,
+      age: int.tryParse(_ageController.text) ?? 0,
+      className: _classController.text,
+    );
+
+    await studentController.createStudent(userToSave);
+
+    _classController.clear();
+    _ageController.clear();
+    _lastnameController.clear();
+    _firstnameController.clear();
+
+    Get.back();
+
+    Get.snackbar(
+      'Information',
+      "L'étudiant a bien été ajouter",
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
   void addStudent(BuildContext context) {
     showDialog(
       context: context,
@@ -138,22 +183,14 @@ class _StudentState extends State<Student> {
                     OutlinedButton(
                       onPressed: () {
                         if (_keyForm.currentState!.validate()) {
-                          print(
-                            "Ajouter l'étudiant: $firstname $lastname, Age: $age, Classe: $className",
-                          );
-                          // Vider les champs après l'ajout
-                          _firstnameController.clear();
-                          _lastnameController.clear();
-                          _ageController.clear();
-                          _classController.clear();
-
-                          //réinitialiser les variables
-                          firstname = "";
-                          lastname = "";
-                          age = 0;
-                          className = "";
-
+                          saveStudentToFirebase();
                           Navigator.pop(context);
+                        } else {
+                          Get.snackbar(
+                            'Information',
+                            "Formulaire invalide",
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
                         }
                       },
                       style: ButtonStyle(
@@ -216,85 +253,125 @@ class _StudentState extends State<Student> {
         ),
         trailing: Icon(Icons.arrow_forward_ios, size: 15),
         onTap: () => {
-          Navigator.push(
+          /*  Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => NotePage(student: student),
             ),
-          )
+          ) */
+          Get.to(() => NotePage(student: student)),
         },
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) {return Scaffold(
       backgroundColor: Color(0xFFDBEEFF),
-      body: ListView(
-        physics: NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.only(top: 50, left: 15, right: 15, bottom: 15),
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                "Etudiants",
-                style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
-              ),
-              Container(
-                width: 29,
-                height: 29,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Color(0xFFFFFFFF),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: Offset(0, 3), // changes position of shadow
-                    ),
-                  ],
+      body: Container(
+        padding: EdgeInsets.only(top: 50, left: 15, right: 15),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  "Etudiants",
+                  style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
                 ),
-                child: IconButton(
-                  onPressed: () => addStudent(context),
-                  padding: EdgeInsets.zero,
-                  icon: Icon(Icons.add, size: 20),
+                Container(
+                  width: 29,
+                  height: 29,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFFFFFF),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 5,
+                        offset: Offset(0, 3), // changes position of shadow
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    onPressed: () => addStudent(context),
+                    padding: EdgeInsets.zero,
+                    icon: Icon(Icons.add, size: 20),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
-          SizedBox(height: 20),
+            SizedBox(height: 20),
 
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.06,
-            child: SearchBar(
-              leading: Icon(Icons.search, color: Color(0xFF8C8C8C)),
-              hintText: "Rechercher ...",
-              backgroundColor: WidgetStatePropertyAll(Color(0xFFFFFFFF)),
-              elevation: WidgetStatePropertyAll(0),
-              onChanged: (value) {
-                // Handle search logic here
-              },
-              shape: WidgetStatePropertyAll(
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.06,
+              child: SearchBar(
+                leading: Icon(Icons.search, color: Color(0xFF8C8C8C)),
+                hintText: "Rechercher ...",
+                backgroundColor: WidgetStatePropertyAll(Color(0xFFFFFFFF)),
+                elevation: WidgetStatePropertyAll(0),
+                onChanged: (value) {
+                  setState(() {
+                    writtenText = value;
+                  });
+                },
+                shape: WidgetStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
               ),
             ),
-          ),
 
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.8,
-            child: ListView(
-              children: students
-                  .map((student) => studentCard(student))
-                  .toList(),
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.only(top: 18),
+                child: FutureBuilder<List<StudentModel>>(
+                  future: studentController.getAllStudents(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          "Erreur lors de la récupération des étudiants",
+                        ),
+                      );
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(child: Text("Aucun étudiant disponible"));
+                    } else {
+                      final allStudents = snapshot.data!;
+
+                      // Appliquer le filtre seulement si l'utilisateur a tapé quelque chose
+                      final displayedStudents = writtenText.isEmpty
+                          ? allStudents
+                          : allStudents.where((student) {
+                              final fullName =
+                                  "${student.firstname} ${student.lastname}"
+                                      .toLowerCase();
+                              return fullName.contains(
+                                writtenText.toLowerCase(),
+                              );
+                            }).toList();
+
+                      return ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: displayedStudents.length,
+                        itemBuilder: (context, index) {
+                          return studentCard(displayedStudents[index]);
+                        },
+                      );
+                    }
+                  },
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

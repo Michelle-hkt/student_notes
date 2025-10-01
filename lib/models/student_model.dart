@@ -1,10 +1,45 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class StudentModel {
+  final String? id;
   final String firstname;
   final String lastname;
   final int age;
   String className;
 
-  StudentModel({required this.firstname, required this.lastname, required this.age, required this.className});
+  StudentModel({this.id, required this.firstname, required this.lastname, required this.age, required this.className});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'firstname': firstname,
+      'lastname': lastname,
+      'age': age,
+      'className': className
+    };
+  }
+
+   static StudentModel fromSnapshot(DocumentSnapshot snapshot) {
+    var snap = snapshot.data() as Map<String, dynamic>;
+
+    return StudentModel(
+        id: snapshot.id,
+        firstname: snap['firstname'],
+        lastname: snap['lastname'],
+        age: snap['age'],
+        className: snap['className']);
+  }
+
+  static StudentModel fromJson(Map<String, dynamic> json) {
+    return StudentModel(
+      id: json['id'],
+      firstname: json['firstname'] ?? '',
+      lastname: json['lastname'] ?? '',
+      age: json['age'] ?? 0,
+      className: json['className'] ?? ''
+    );
+  }
+
+  
 }
 
 List<StudentModel> students = [
